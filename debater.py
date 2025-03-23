@@ -244,7 +244,7 @@ def run_loop():
             print(f"{speaker} is thinking...")
 
             # Consider updating the prompt for this speaker...
-            count = sum(1 for line in conversation if line['role'] == speaker)
+            count = sum(1 for line in conversation if line['role'] == speaker) + 1
             if count % update_character_every == 0:
                 update_persona_prompt(speaker, personas, conversation, client, config)
 
