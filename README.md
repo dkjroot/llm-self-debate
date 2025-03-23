@@ -18,8 +18,8 @@ Some models perform well and others are a pain to use in this format.  I'm findi
 - [x] Alternate between multiple viewpoint characters.
 - [x] Multiple characters each have their own personalities and agendas.
 - [x] The conversation sent to the API uses 'assistant' for the current character, and 'user' for the other characters, so that the LLM thinks its own character is the only LLM in the conversation.
-- [ ] Have the LLM update the character system prompts as the conversation progresses.
-- [ ] Have the LLM update the scenario system prompt as the conversation progresses.
+- [x] Have the LLM update the character system prompts as the conversation progresses.
+- [x] Have the LLM update the scenario system prompt as the conversation progresses.
 
 
 # How does it work?
@@ -36,9 +36,14 @@ initial_conversation.txt contains the conversation that has occurred to date.  I
 
 It's useful to have some starting point conversations prepared, and that's what prep_initial_conversation*.txt represent - copy one of those to initial_conversation.txt and start the script to begin a fresh debate.
 
-Once you run the script, the characters will debate until you stop the script with ctrl+c.  The conversation will be written out to conversation_(datetime).txt
+config.json should be mostly self-explanatory.  The following fields to the following things:
+- update_dynamic_character_prompt_every_N_statements - how many times should a specific character speak before the dynamic (aka variable) part of their character prompt is updated?
+- new_dynamic_scenario_prompt_every_N_statements - how many times should any character speak before the dynamic part of the scenario prompt is updated?
+- print_new_dynamic_prompts - if set true, new dynamic prompts will be printed to the console (but not to the file) - useful if you want to see how well the dynamic feature is working.
 
-All the conversation.txt files follow the same format - character name colon "line", e.g. Ted: "Let's get started!"
+Once you run the script, the characters will debate until you stop the script with ctrl+c.  The conversation will be written to the console and also to conversation_(datetime).txt
+
+All the conversation.txt files follow the same format - character name colon "line", e.g. Ted: "Let's get started!".  That way you can always use a conversation_(datetime).txt as initial_conversation.txt to carry on (or edit and carry on) a previous debate.
 
 
 # FAQ
