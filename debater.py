@@ -79,9 +79,10 @@ def personalise_conversation(conversation, speaker_name):
 # Call the openai API to get a response from the requested persona
 def get_response(speaker_name, personas, system_prompt, client, config, conversation):
     conversation_as_persona = personalise_conversation(conversation, speaker_name)
-    built_system_prompt = personas[speaker_name]['fixed_prompt'] + personas[speaker_name]['fixed_prompt'] + \
-                          system_prompt[
-                              'rules'] + system_prompt['scenario_fixed'] + system_prompt['scenario_variable']
+    built_system_prompt = personas[speaker_name]['fixed_prompt'] + " " + personas[speaker_name]['variable_prompt'] + \
+                          " " + system_prompt[
+                              'rules'] + " " + system_prompt['scenario_fixed'] + " " + system_prompt[
+                              'scenario_variable']
     conversation_with_prompt = [{'role': 'system', 'content': built_system_prompt}] + conversation_as_persona
     completion = client.chat.completions.create(
         model=config['model'],
@@ -157,7 +158,7 @@ def update_persona_prompt(persona_name, personas, conversation, client, config):
                      f"to the lines written by {persona_name}.  Do not write a new line continuing the conversation."
                      f"Your job is to write a new LLM system prompt for the {persona_name} character."
                      f"The {persona_name} character currently has the following fixed prompt: \"{fixed_prompt}\" and "
-                     f"the variable prompt: \"{variable_prompt}\".  In the light of the debate " 
+                     f"the variable prompt: \"{variable_prompt}\".  In the light of the debate "
                      "so far, how would you change the variable part of the system prompt to in order to keep "
                      "the conversation fresh and interesting, and reflect the character's "
                      "changing point of view and priorities? Respond with the new variable "
@@ -186,16 +187,16 @@ def update_scenario_prompt(system_prompt, conversation, client, config):
     fixed_prompt = system_prompt['scenario_fixed']
     variable_prompt = system_prompt['scenario_variable']
     this_system_prompt = ("Read the conversation paying special attention to how the scenario has developed over time."
-                     "Do not write a new line continuing the conversation."
-                     f"Your job is to write a new LLM system prompt for the scenario."
-                     f"The scenario currently has the following fixed prompt: \"{fixed_prompt}\" and "
-                     f"the variable prompt: \"{variable_prompt}\".  In the light of the debate " 
-                     "so far, how would you change the variable part of the system prompt to in order to keep "
-                     "the conversation fresh and interesting, and reflect the way the conversation has changed? "
-                     "Respond with the new dynamic prompt only. Write the response as if you're specifying a prompt "
-                     "for another LLM, i.e. use \"you\" not \"I\" or the character names. "
-                     "Do not write about your reasoning for the prompt, or prefix it in any way, "
-                     f"write only the new variable prompt for dynamic scenario.")
+                          "Do not write a new line continuing the conversation."
+                          f"Your job is to write a new LLM system prompt for the scenario."
+                          f"The scenario currently has the following fixed prompt: \"{fixed_prompt}\" and "
+                          f"the variable prompt: \"{variable_prompt}\".  In the light of the debate "
+                          "so far, how would you change the variable part of the system prompt to in order to keep "
+                          "the conversation fresh and interesting, and reflect the way the conversation has changed? "
+                          "Respond with the new dynamic prompt only. Write the response as if you're specifying a prompt "
+                          "for another LLM, i.e. use \"you\" not \"I\" or the character names. "
+                          "Do not write about your reasoning for the prompt, or prefix it in any way, "
+                          f"write only the new variable prompt for dynamic scenario.")
 
     # just for good measure...
     conversation_extended = conversation + [{'role': 'user', 'content': this_system_prompt}]
@@ -239,25 +240,25 @@ def run_loop():
     # Iterate on building the conversation speaker by speaker
     statement_num = 0
     while True:
-            # Choose a speaker
-            speaker, speaker_index = choose_speaker(speaker, speaker_order, persona_names, speaker_index)
-            print(f"{speaker} is thinking...")
+        # Choose a speaker
+        speaker, speaker_index = choose_speaker(speaker, speaker_order, persona_names, speaker_index)
+        print(f"{speaker} is thinking...")
 
-            # Consider updating the prompt for this speaker...
-            count = sum(1 for line in conversation if line['role'] == speaker) + 1
-            if count % update_character_every == 0:
-                update_persona_prompt(speaker, personas, conversation, client, config)
+        # Consider updating the prompt for this speaker...
+        count = sum(1 for line in conversation if line['role'] == speaker) + 1
+        if count % update_character_every == 0:
+            update_persona_prompt(speaker, personas, conversation, client, config)
 
-            # Progress the conversation
-            progress_conversations(conversation, speaker, personas, system_prompt, client, config)
+        # Progress the conversation
+        progress_conversations(conversation, speaker, personas, system_prompt, client, config)
 
-            # And print the new conversation line
-            print_conversation(conversation, 1, outfile)
+        # And print the new conversation line
+        print_conversation(conversation, 1, outfile)
 
-            statement_num = statement_num + 1
-            # Consider updating the dynamic scenario prompt
-            if count % update_scenario_every == 0:
-                update_scenario_prompt(system_prompt, conversation, client, config)
+        statement_num = statement_num + 1
+        # Consider updating the dynamic scenario prompt
+        if count % update_scenario_every == 0:
+            update_scenario_prompt(system_prompt, conversation, client, config)
 
 
 # Main
