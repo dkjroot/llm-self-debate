@@ -1,14 +1,14 @@
 # llm-self-debate
-A python project where multiple LLM personalities debate each other
+A python project where multiple LLM personalities debate each other.
 
-The idea is quite simple - set up multiple system prompts for different characters, and alternate between them, building up a conversation about a subject that you choose.  I want to make it so that you can intervene, and since I can't be bothered to make a UI that'll be by stopping the script and editing the text files!  
+The idea is quite simple - set up multiple system prompts for different characters and alternate between them, building up a conversation about a subject that you choose.  I want to make it so that you can intervene, and since I can't be bothered to make a UI that'll be by stopping the script and editing the text files!  
 
-I think the tricky part will be getting something better than a circular conversation that never goes anywhere below the surface of the topic, because LLMs are very good at pretending they're not superficial, but they are basically pretty superficial.  Anyway, lets see how good we can make it.
+I think the tricky part will be getting something better than a circular conversation that never goes anywhere below the surface of the topic, because LLMs are very good at pretending they're not superficial, but they are basically pretty superficial.  Anyway, lets see how good we can make it...
 
 
 # Requirements
 
-Uses the openai api, so you need to have something to talk to, either an online service or run a local model in something like koboldcpp.  I like koboldcpp, I find it simple to use, and I can run a 70B llama 3.3 gguf locally with reasonable performance (not real time, but fast enough to get results, and you do need a good model for this experiment to be worth doing at all).  I use a smaller model for speed while I'm working on the script, but they output is not good.
+Uses the OpenAI API so you need to have something to talk to, either an online service or run a local model in something like koboldcpp.  I like koboldcpp, I find it simple to use, and (thanks to beefy graphics card and lots of system RAM) I can run a 70B llama 3.3 8-bit gguf locally with reasonable performance (not real time, but fast enough to get results, and you do need a good model for this experiment to be worth doing at all).  I use a smaller model for speed while I'm working on the script, but the output and instruction following from smaller models is not good.
 
 Some models perform well and others are a pain to use in this format.  I'm finding the pure llama 3 models work fine.
 
@@ -26,17 +26,17 @@ Some models perform well and others are a pain to use in this format.  I'm findi
 
 names.txt contains a comma-separated list of the names of the characters in your debate.  e.g. "May,Ted,Pete,Ben,Violet"
 
-Each character needs a Name_prompt.json, which is that character's initial system prompt.  e.g. May_prompt.json.  This contains two strings, 'fixed_prompt' that will always be used, and 'variable_prompt' that will be used as the initial variable prompt, but the LLM will update as the conversation progresses (this is an attempt to introduce some variance and freshness into the debate, otherwise the LLM tends to go round in circles). 
+Each character needs a Name_prompt.json, which is that character's initial system prompt.  e.g. May_prompt.json.  This contains two strings, 'fixed_prompt' that will always be used, and 'variable_prompt' that will be used as the initial dynamic prompt, but the LLM will update as the conversation progresses (this is an attempt to introduce some variance and freshness into the debate, otherwise the LLM tends to go round in circles). 
 
 speaker_order.txt can be used to force a specific order for the speakers. When the script comes to the end of this list, it will choose a speaker at random. In both modes, it will avoid using the same speaker twice in a row.
 
-system_prompt.json contains three strings: 'rules' where you can tune the behaviour of the LLM, 'scenario_fixed' where you can define non-variable parts of the debate scenario, and 'scenario_variable' which is an initial value for the part of the scenario that the LLM will be allowed to update as the debate progresses.
+system_prompt.json contains three strings: 'rules' where you can tune the behaviour of the LLM, 'scenario_fixed' where you can define non-variable parts of the debate scenario, and 'scenario_variable' which is an initial value for the dynamic part of the scenario that the LLM will be allowed to update as the debate progresses.
 
 initial_conversation.txt contains the conversation that has occurred to date.  It's a good way to set an initial tone for the conversation.  You can also use this as a way to edit the conversation the characters have had so far - copy the conversation_(datetime).txt over initial_conversation.txt, edit anything you want to edit, then run the script again.
 
 It's useful to have some starting point conversations prepared, and that's what prep_initial_conversation*.txt represent - copy one of those to initial_conversation.txt and start the script to begin a fresh debate.
 
-config.json should be mostly self-explanatory.  The following fields to the following things:
+config.json should be mostly self-explanatory.  The following fields do the following things:
 - update_dynamic_character_prompt_every_N_statements - how many times should a specific character speak before the dynamic (aka variable) part of their character prompt is updated?
 - new_dynamic_scenario_prompt_every_N_statements - how many times should any character speak before the dynamic part of the scenario prompt is updated?
 - print_new_dynamic_prompts - if set true, new dynamic prompts will be printed to the console (but not to the file) - useful if you want to see how well the dynamic feature is working.
