@@ -1,0 +1,11 @@
+{
+  "base_url":"http://WRAITH.local:5001/v1/",
+  "api_key": "cc",
+  "model": "koboldcpp",
+  "max_tokens":600,
+  "temperature":0.075,
+  "top_p":0.95,
+  "update_dynamic_character_prompt_every_N_statements": 3,
+  "new_dynamic_scenario_prompt_every_N_statements": 8,
+  "print_new_dynamic_prompts": true
+}
