@@ -161,9 +161,11 @@ def update_persona_prompt(persona_name, personas, conversation, client, config):
                      f"the variable prompt: \"{variable_prompt}\".  In the light of the debate "
                      "so far, how would you change the variable part of the system prompt to in order to keep "
                      "the conversation fresh and interesting, and reflect the character's "
-                     "changing point of view and priorities? Respond with the new variable "
-                     "prompt only. Write the response as if you're specifying a prompt for "
-                     "another LLM, i.e. use \"you\" not \"I\" or the character name. "
+                     "changing point of view and priorities? Beware of the tendency to remove "
+                     "all drama and interest from a conversation by normalising everyone's views towards the centre "
+                     "- adjust the prompt in a way that maintains the differences that make for an interesting "
+                     "conversation. Respond with the new variable prompt only. Write the response as if you're "
+                     "specifying a prompt for another LLM, i.e. use \"you\" not \"I\" or the character name. "
                      "Do not write about your reasoning for the prompt, or prefix it in any way, "
                      f"write only the new variable prompt for the character {persona_name}.")
 
