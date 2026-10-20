@@ -1,0 +1,19 @@
+{
+  "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+  "api_key_env": "GEMINI_API_KEY",
+  "model": "",
+  "max_tokens": 4096,
+  "token_parameter": "max_tokens",
+  "temperature": 0.6,
+  "top_p": 0.9,
+  "max_turns": 4,
+  "max_calls": 8,
+  "timeout": 60,
+  "max_retries": 1,
+  "retry_delay": 1,
+  "seed": 0,
+  "trace_level": "full",
+  "update_dynamic_character_prompt_every_N_statements": 3,
+  "new_dynamic_scenario_prompt_every_N_statements": 2,
+  "print_new_dynamic_prompts": false
+}

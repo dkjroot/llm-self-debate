@@ -178,3 +178,10 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+AGENT*
+TODO.md
+
+# Local run artifacts and provider overrides
+runs/
+config.*.local.json

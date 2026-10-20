@@ -1,11 +1,18 @@
 {
   "base_url":"http://WRAITH.local:5001/v1/",
-  "api_key": "cc",
+  "api_key_env": "DEBATE_API_KEY",
   "model": "koboldcpp",
   "max_tokens": 1024,
   "temperature":0.6,
   "top_p":0.9,
   "update_dynamic_character_prompt_every_N_statements": 3,
   "new_dynamic_scenario_prompt_every_N_statements": 8,
-  "print_new_dynamic_prompts": true
+  "print_new_dynamic_prompts": false,
+  "max_turns": 20,
+  "max_calls": 40,
+  "timeout": 60,
+  "max_retries": 1,
+  "retry_delay": 1,
+  "seed": 0,
+  "trace_level": "full"
 }
