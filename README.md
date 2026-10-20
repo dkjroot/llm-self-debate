@@ -30,23 +30,88 @@ I think the tricky part will be getting something better than a circular convers
 
 # Requirements
 
-Uses the OpenAI API so you need to have something to talk to, either an online service or run a local model in something like koboldcpp.  I like koboldcpp, I find it simple to use, and (thanks to beefy graphics card and lots of system RAM) I can run a 70B llama 3.3 8-bit gguf locally with reasonable performance (not real time, but fast enough to get results, and you do need a good model for this experiment to be worth doing at all).  I use a smaller model for speed while I'm working on the script, but the output and instruction following from smaller models is not good.
+Uses an OpenAI-compatible chat API so you need to have something to talk to, either an online service or a local model served through a compatible API. There are various ways to do that locally. I use KoboldCpp in the examples here, and I recommend it because it's very easy to use and I've found the compatibility and speed to be good. Other compatible local servers are available, though, so use whichever suits you.
+
+Thanks to a beefy graphics card and lots of system RAM, I can run a 70B llama 3.3 8-bit gguf locally with reasonable performance (not real time, but fast enough to get results, and you do need a good model for this experiment to be worth doing at all).  I use a smaller model for speed while I'm working on the script, but the output and instruction following from smaller models is not good.
 
 Some models perform well and others are a pain to use in this format.  I'm finding the pure llama 3 models work fine.
 
-## Setup
+## Install it
 
-Use Python 3.10 or newer. From the repository directory in PowerShell:
+You'll need Git and Python 3.10 or newer (Python 3.12 is a good choice), plus
+something to run the model. The Python bit is the same whichever compatible
+server you're using. There isn't a UI to install - it's just a script.
+
+### Windows (PowerShell)
+
+Install [Python](https://www.python.org/downloads/) and
+[Git](https://git-scm.com/downloads), then open PowerShell:
 
 ```powershell
+git clone https://github.com/dkjroot/llm-self-debate.git
+cd llm-self-debate
 py -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe debater.py --dry-run
+.\.venv\Scripts\python.exe debater.py --config config.koboldcpp.example.json --dry-run
 ```
 
-The dry run validates files and shows redacted configuration plus representative
-requests for all three generation paths. It imports no SDK, creates no run files,
-and makes no API calls. It does not test credentials or model availability.
+If you've already cloned the repo, just open PowerShell in that folder and skip
+the first two lines. If Windows doesn't recognise `py`, try `python` instead.
+There's no need to activate the environment, so you don't have to fiddle with
+PowerShell's script execution policy either.
+
+### Linux (bash)
+
+You'll need `git`, `python3` and Python's `venv` support. On Ubuntu or Debian you
+can install them with `sudo apt install git python3 python3-venv python3-pip`.
+Then:
+
+```bash
+git clone https://github.com/dkjroot/llm-self-debate.git
+cd llm-self-debate
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python debater.py --config config.koboldcpp.example.json --dry-run
+```
+
+Again, skip the clone and `cd` if you're already in the repo. On other Linux
+distributions, use your usual package manager to install Python and Git.
+Create the virtual environment on the OS you're running it on; a Windows one
+won't work on Linux, or vice versa.
+
+The dry run checks the files and shows what would be sent to the model. It doesn't
+connect to anything, so you can do this before you've even started KoboldCpp.
+If it reports a problem, sort that out before asking the characters to talk.
+
+## Start a local model (KoboldCpp example)
+
+Here's the setup for the server used in these examples. If you've already got a
+local server with an OpenAI-compatible chat API, you can use that instead. Copy
+the example config and set `base_url`, `model` and `api_key_env` to suit that
+server; its own documentation should tell you what it expects. The model name,
+port and password options below are for the KoboldCpp example.
+
+Get the Windows or Linux build for your machine from the
+[official KoboldCpp releases](https://github.com/LostRuins/koboldcpp/releases).
+Launch it, load your GGUF model, and wait for it to finish loading. On Linux you
+may need to make the downloaded file executable first, e.g.
+`chmod +x koboldcpp-linux-x64`, then run it with `./koboldcpp-linux-x64` (use the
+name of the file you actually downloaded).
+
+You should be able to open KoboldCpp's own chat page at
+[http://127.0.0.1:5001](http://127.0.0.1:5001). Leave it running while you run the
+debate script. If you've chosen a different port, use that instead of `5001`.
+
+KoboldCpp's [OpenAI-compatible API](https://github.com/LostRuins/koboldcpp/wiki)
+is already part of the server; you don't need a separate OpenAI account or an
+OpenAI API key for a local model. Use `http://127.0.0.1:5001/v1/` as the base URL,
+not the chat page URL or the native `/api` endpoint. The script adds
+`chat/completions` to that URL itself.
+
+`config.koboldcpp.example.json` is set up for this, with `model` set to `koboldcpp`.
+KoboldCpp supplies the model you've loaded - that setting doesn't download a model.
+The older `config.json` points at my own `WRAITH.local` machine, so use the example
+unless that's the server you actually want!
 
 # Goals
 
@@ -66,31 +131,112 @@ speaker_order.txt can be used to force a specific order for the speakers. When t
 
 system_prompt.json contains three strings: 'rules' where you can tune the behaviour of the LLM, 'scenario_fixed' where you can define non-variable parts of the debate scenario, and 'scenario_variable' which is an initial value for the dynamic part of the scenario that the LLM will be allowed to update as the debate progresses.
 
-initial_conversation.txt contains the conversation that has occurred to date.  It's a good way to set an initial tone for the conversation.  You can also use this as a way to edit the conversation the characters have had so far - copy the conversation_(datetime).txt over initial_conversation.txt, edit anything you want to edit, then run the script again.
+initial_conversation.txt contains the conversation that has occurred to date.  It's a good way to set an initial tone for the conversation.  You can also use this as a way to edit the conversation the characters have had so far - copy a run's conversation.txt over initial_conversation.txt, edit anything you want to edit, then run the script again.
 
-It's useful to have some starting point conversations prepared, and that's what prep_initial_conversation*.txt represent - copy one of those to initial_conversation.txt and start the script to begin a fresh debate.
+It's useful to have some starting point conversations prepared - keep your own copies, then copy whichever one you want to initial_conversation.txt before starting a fresh debate.
 
-config.json should be mostly self-explanatory.  The following fields do the following things:
+The settings in the config files should be mostly self-explanatory. The following fields do the following things:
+
 - update_dynamic_character_prompt_every_N_statements - how many times should a specific character speak before the dynamic (aka variable) part of their character prompt is updated?
 - new_dynamic_scenario_prompt_every_N_statements - how many times should any character speak before the dynamic part of the scenario prompt is updated?
 - print_new_dynamic_prompts - if set true, new dynamic prompts will be printed to the console (but not to the file) - useful if you want to see how well the dynamic feature is working.
 
-Once you run the script, the characters will debate until you stop the script with ctrl+c.  The conversation will be written to the console and also to conversation_(datetime).txt
+Once you run the script, the characters will debate until they reach the turn or API-call limit, or you stop them with Ctrl+C. The conversation is written to the console and also to runs/<run-id>/conversation.txt. That folder also contains the evolving prompts and diagnostic logs, which are useful when you're trying to work out why they've all started agreeing again.
 
-All the conversation.txt files follow the same format - character name colon "line", e.g. Ted: "Let's get started!".  That way you can always use a conversation_(datetime).txt as initial_conversation.txt to carry on (or edit and carry on) a previous debate.
+All the conversation.txt files follow the same format - character name colon "line", e.g. Ted: "Let's get started!".  That way you can use a run's conversation.txt as initial_conversation.txt to carry on (or edit and carry on) a previous debate. That starts from the authored prompts again; use a checkpoint if you want to keep the characters' evolved prompts as well.
 
-## Local models and Gemini
+## Run a debate
 
-`config.json` contains config to use a local KoboldCpp endpoint. It defaults to 20
-new dialogue turns and at most 40 API attempts, including prompt updates and retries.
-Start it with:
+Start with a short one to make sure everything is talking to everything else.
+From the repository folder, with KoboldCpp running:
+
+**Windows:**
 
 ```powershell
-.\.venv\Scripts\python.exe debater.py --max-turns 6 --max-calls 12
+.\.venv\Scripts\python.exe debater.py --config config.koboldcpp.example.json --max-turns 6 --max-calls 12
 ```
 
-Set `DEBATE_API_KEY` if your local server requires authentication. Without it, local
-endpoints use a dummy key (`local-no-key`).
+**Linux:**
+
+```bash
+.venv/bin/python debater.py --config config.koboldcpp.example.json --max-turns 6 --max-calls 12
+```
+
+You'll see the characters' replies as they come back. There may be a fair wait
+between them, depending on the model and your hardware. Without those two limit
+options, the example allows 20 new dialogue turns and up to 40 API calls. Updating
+a character's prompt or the scenario also takes a call.
+
+The KoboldCpp example waits up to 600 seconds for a response and doesn't retry a
+failed request automatically. A big local model can be slow, and I'd rather find
+out what's wrong than ask it to generate the same thing twice. You can change
+`timeout` and `max_retries` in the config if you want different behaviour.
+
+### A password, or a model running on another computer
+
+If you set a password in KoboldCpp (the `--password` option), that's the key you
+need here. Set it in the terminal you're going to run the debate from.
+
+**Windows:**
+
+```powershell
+$env:DEBATE_API_KEY = [Net.NetworkCredential]::new('', (Read-Host 'KoboldCpp password' -AsSecureString)).Password
+```
+
+**Linux:**
+
+```bash
+read -rsp 'KoboldCpp password: ' DEBATE_API_KEY; echo
+export DEBATE_API_KEY
+```
+
+Leave it unset if you haven't given KoboldCpp a password. The script supplies a
+dummy key for the SDK in that case. Don't put a real password in a tracked JSON
+file; `.env` files aren't loaded automatically either.
+
+For a server elsewhere on your local network, set its address before running the
+same command. For example:
+
+**Windows:**
+
+```powershell
+$env:DEBATE_BASE_URL = 'http://WRAITH.local:5001/v1/'
+```
+
+**Linux:**
+
+```bash
+export DEBATE_BASE_URL='http://WRAITH.local:5001/v1/'
+```
+
+Use your own server's `.local` name or private IP address and port. KoboldCpp must
+be listening on that network interface, and its port needs to be reachable from
+the machine running this script. If you'd rather keep those settings in a file,
+copy the example to `config.koboldcpp.local.json`, edit it and pass that filename
+to `--config`. Files named `config.*.local.json` are ignored by Git.
+
+### If it doesn't talk back
+
+- **Connection refused:** check KoboldCpp is running and the model has finished
+  loading. Check the hostname and port, especially if it's on another computer.
+- **401/403:** check `DEBATE_API_KEY` matches the password on that server.
+- **404:** check the base URL ends in `/v1/`; don't append `chat/completions` yourself.
+- **Timeout:** try a smaller model or increase `timeout` in your config. After a
+  timeout, check the server has finished its earlier request before trying again.
+- **Odd role tags or gibberish:** check KoboldCpp's chat template/Chat Completions
+  adapter matches your model. A model answering nicely in its own chat window
+  doesn't necessarily mean the API is using the right format.
+- **Losing track of earlier arguments:** each call includes the conversation so
+  far, so give KoboldCpp enough context for both that and the next reply. Start
+  with short runs; the server's context limit still applies.
+
+Environment settings override file settings for a fresh run. If you're switching
+back from another provider, clear `DEBATE_MODEL` and `DEBATE_BASE_URL` so an old
+setting doesn't quietly win over the KoboldCpp example. In PowerShell, use
+`Remove-Item Env:DEBATE_MODEL, Env:DEBATE_BASE_URL -ErrorAction SilentlyContinue`;
+in bash, use `unset DEBATE_MODEL DEBATE_BASE_URL`.
+
+### Gemini
 
 For Gemini, use the supplied secret-free example. Choose a model ID available to
 your account; the example deliberately leaves `model` empty rather than assuming
@@ -103,7 +249,17 @@ $env:GEMINI_API_KEY = [Net.NetworkCredential]::new('', (Read-Host 'Gemini API ke
 .\.venv\Scripts\python.exe debater.py --config config.gemini.example.json --max-turns 4 --max-calls 8
 ```
 
-The second command after the dry run sends the prompts and transcript to Google and
+On Linux:
+
+```bash
+export DEBATE_MODEL='<YOUR_AVAILABLE_GEMINI_MODEL_ID>'
+read -rsp 'Gemini API key: ' GEMINI_API_KEY; echo
+export GEMINI_API_KEY
+.venv/bin/python debater.py --config config.gemini.example.json --dry-run
+.venv/bin/python debater.py --config config.gemini.example.json --max-turns 4 --max-calls 8
+```
+
+The run command sends the prompts and transcript to Google and
 uses that project's API quota/billing. The example requests scenario updates every
 two new dialogue turns; four turns normally exercise all three call paths with the
 supplied roster and schedule.
@@ -113,7 +269,7 @@ supplied roster and schedule.
 There is no provider fallback. `token_parameter` can be `max_tokens` (default) or
 `max_completion_tokens` for compatible servers that need it. Adjust the output-token
 budget for your model; truncated or empty thinking-model output may need a larger
-budget. Sampling support and account/model availability still need a live check.
+budget. Check that your chosen service and model accept those settings.
 
 ## Inputs and update policy
 
@@ -126,7 +282,7 @@ budget. Sampling support and account/model availability still need a live check.
   speech is joined with spaces. An empty starting conversation is allowed.
 
 Character updates run **before** every Nth prospective speech by that character,
-including their seed speeches in the count (preserving the original convention).
+including their seed speeches in the count.
 Scenario updates run **after** every Nth newly generated dialogue turn, excluding
 seed speeches. Set either interval to zero to disable it, or use
 `--no-character-updates` / `--no-scenario-updates` for a fresh comparison run.
@@ -144,11 +300,18 @@ stop the run without appending a duplicate turn. Errors preserve a checkpoint.
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-Tests use fake clients plus the actual pinned SDK with an offline HTTP transport.
+On Linux:
+
+```bash
+.venv/bin/python -m unittest discover -s tests -v
+```
+
+Tests use fake clients and the actual SDK, including a small local HTTP server
+that checks the KoboldCpp-style requests and password handling. No model is needed.
 They cover scheduling, all request paths, invalid/empty responses, budgets/retries,
 redaction, trace inspection, checkpoint continuation, and passive tracing. These tests
-do not establish factual accuracy or improved character arguments. See `TODO.md`
-for completed first-pass work and remaining behavioral experiments.
+don't tell you whether the characters are making good arguments. You'll still
+have to read what they say!
 
 ## Trace, inspection, and resumption
 
@@ -166,22 +329,36 @@ Each live run creates a unique directory under `runs/`:
 Inspect locally without calling a model:
 
 ```powershell
-.\.venv\Scripts\python.exe debater.py inspect runs/<RUN_ID>
-.\.venv\Scripts\python.exe debater.py inspect runs/<RUN_ID> --speaker Violet --event prompt_changed
-.\.venv\Scripts\python.exe debater.py inspect runs/<RUN_ID> --turn 3
-.\.venv\Scripts\python.exe debater.py inspect runs/<RUN_ID> --failed-only
+.\.venv\Scripts\python.exe debater.py inspect runs/RUN_ID
+.\.venv\Scripts\python.exe debater.py inspect runs/RUN_ID --speaker Violet --event prompt_changed
+.\.venv\Scripts\python.exe debater.py inspect runs/RUN_ID --turn 3
+.\.venv\Scripts\python.exe debater.py inspect runs/RUN_ID --failed-only
 ```
 
+On Linux the options are the same, just use the other Python path:
+
+```bash
+.venv/bin/python debater.py inspect runs/RUN_ID
+.venv/bin/python debater.py inspect runs/RUN_ID --speaker Violet --event prompt_changed
+```
+
+Replace `RUN_ID` with the actual folder name printed at the end of the run.
 Quote a path if it contains spaces. Trace sequence numbers link report findings to
 raw events, and artifact paths link to complete local evidence. Truncated final JSONL
 records are tolerated; corruption in earlier records is reported. Heuristic flags
-are prompts for review, not judgments of debate quality. Semantic argument tracking,
-unresolved-issue reports, and faithful final argument maps remain future work.
+just point out things you might want to look at; they don't tell you whether
+the debate is any good.
 
 Resume from a checkpoint, increasing cumulative limits if necessary:
 
 ```powershell
-.\.venv\Scripts\python.exe debater.py --resume runs/<RUN_ID>/checkpoint.json --max-turns 12 --max-calls 30
+.\.venv\Scripts\python.exe debater.py --resume runs/RUN_ID/checkpoint.json --max-turns 12 --max-calls 30
+```
+
+Or on Linux:
+
+```bash
+.venv/bin/python debater.py --resume runs/RUN_ID/checkpoint.json --max-turns 12 --max-calls 30
 ```
 
 A resume creates a new directory linked to its parent and preserves the endpoint,
